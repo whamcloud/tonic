@@ -151,7 +151,7 @@ fn from_decode_error(error: prost::DecodeError) -> crate::Status {
 mod tests {
     use crate::codec::compression::SingleMessageCompressionOverride;
     use crate::codec::{
-        encode_server, DecodeBuf, Decoder, EncodeBuf, Encoder, Streaming, HEADER_SIZE,
+        DecodeBuf, Decoder, EncodeBody, EncodeBuf, Encoder, Streaming, HEADER_SIZE,
     };
     use crate::Status;
     use bytes::{Buf, BufMut, BytesMut};
@@ -228,7 +228,7 @@ mod tests {
         let messages = std::iter::repeat_with(move || Ok::<_, Status>(msg.clone())).take(10000);
         let source = tokio_stream::iter(messages);
 
-        let mut body = pin!(encode_server(
+        let mut body = pin!(EncodeBody::new_server(
             encoder,
             source,
             None,
@@ -250,7 +250,7 @@ mod tests {
         let messages = std::iter::once(Ok::<_, Status>(msg));
         let source = tokio_stream::iter(messages);
 
-        let mut body = pin!(encode_server(
+        let mut body = pin!(EncodeBody::new_server(
             encoder,
             source,
             None,
@@ -267,7 +267,7 @@ mod tests {
             frame
                 .into_trailers()
                 .expect("got trailers")
-                .get("grpc-status")
+                .get(Status::GRPC_STATUS)
                 .expect("grpc-status header"),
             "11"
         );
@@ -278,6 +278,8 @@ mod tests {
     #[cfg(not(target_family = "windows"))]
     #[tokio::test]
     async fn encode_too_big() {
+        use crate::codec::EncodeBody;
+
         let encoder = MockEncoder::default();
 
         let msg = vec![0u8; u32::MAX as usize + 1];
@@ -285,7 +287,7 @@ mod tests {
         let messages = std::iter::once(Ok::<_, Status>(msg));
         let source = tokio_stream::iter(messages);
 
-        let mut body = pin!(encode_server(
+        let mut body = pin!(EncodeBody::new_server(
             encoder,
             source,
             None,
@@ -302,7 +304,7 @@ mod tests {
             frame
                 .into_trailers()
                 .expect("got trailers")
-                .get("grpc-status")
+                .get(Status::GRPC_STATUS)
                 .expect("grpc-status header"),
             "8"
         );

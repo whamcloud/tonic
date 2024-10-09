@@ -36,7 +36,7 @@
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!    tonic_build::configure()
 //!         .build_server(false)
-//!         .compile(
+//!         .compile_protos(
 //!             &["proto/helloworld/helloworld.proto"],
 //!             &["proto/helloworld"],
 //!         )?;
@@ -70,7 +70,7 @@
     html_logo_url = "https://raw.githubusercontent.com/tokio-rs/website/master/public/img/icons/tonic.svg"
 )]
 #![deny(rustdoc::broken_intra_doc_links)]
-#![doc(html_root_url = "https://docs.rs/tonic-build/0.12.2")]
+#![doc(html_root_url = "https://docs.rs/tonic-build/0.12.3")]
 #![doc(issue_tracker_base_url = "https://github.com/hyperium/tonic/issues/")]
 #![doc(test(no_crate_inject, attr(deny(rust_2018_idioms))))]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
@@ -81,6 +81,10 @@ use quote::TokenStreamExt;
 /// Prost generator
 #[cfg(feature = "prost")]
 mod prost;
+#[cfg(feature = "prost")]
+pub use prost_build::Config;
+#[cfg(feature = "prost")]
+pub use prost_types::FileDescriptorSet;
 
 #[cfg(feature = "prost")]
 pub use prost::{compile_fds, compile_protos, configure, Builder};
